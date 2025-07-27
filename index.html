@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.9);
+            padding: 1.8rem;
+            text-align: center;
+            border-bottom: 4px solid #ffd700;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .header h1 {
+            font-size: 3.2rem;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            margin-bottom: 1rem;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            font-size: 1.4rem;
+        }
+        
+        .status-indicator {
+            width: 18px;
+            height: 18px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 18px #00ff00;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        .console {
+            flex: 1;
+            background: rgba(0, 10, 20, 0.95);
+            border: 3px solid #0ff;
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            overflow: hidden;
+        }
+        
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #0ff;
+            margin-bottom: 25px;
+        }
+        
+        .console-title {
+            font-size: 2rem;
+            color: #ffd700;
+            letter-spacing: 3px;
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.6);
+        }
+        
+        .console-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0, 20, 30, 0.75);
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            line-height: 1.7;
+            color: #0ff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            margin-bottom: 25px;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+        }
+        
+        .chat-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 15, 30, 0.95);
+            border: 3px solid #ffd700;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4);
+        }
+        
+        .chat-header {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 25px;
+            text-align: center;
+            border-bottom: 3px solid #ffd700;
+        }
+        
+        .chat-header h2 {
+            color: #ffd700;
+            letter-spacing: 4px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><rect width="120" height="120" fill="none" stroke="rgba(0,255,255,0.15)" stroke-width="1.5"/></svg>');
+            background-size: 25px 25px;
+        }
+        
+        .message {
+            max-width: 90%;
+            padding: 25px;
+            border-radius: 25px;
+            line-height: 1.7;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+            word-wrap: break-word;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #1e5799, #207cca);
+            align-self: flex-end;
+            border-bottom-right-radius: 8px;
+            color: white;
+            border-right: 4px solid #0ff;
+        }
+        
+        .jarvis-message {
+            background: linear-gradient(135deg, #2c3e50, #4a6491);
+            align-self: flex-start;
+            border-bottom-left-radius: 8px;
+            color: #fff;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .jarvis-message::before {
+            content: "JARVIS:";
+            display: block;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+        }
+        
+        .chat-input-container {
+            display: flex;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.85);
+            border-top: 3px solid #444;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        #chat-input {
+            flex: 1;
+            padding: 18px 25px;
+            border: 4px solid #0ff;
+            border-radius: 40px;
+            background: rgba(0, 30, 50, 0.95);
+            color: #fff;
+            font-size: 1.3rem;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+        
+        #chat-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #0ff, #00bfff);
+            border: none;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 1.6rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        }
+        
+        .send-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.9);
+        }
+        
+        .mic-button {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            border: none;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 2.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+            position: relative;
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.9);
+        }
+        
+        .mic-button.listening {
+            animation: pulse-gold 1s infinite;
+        }
+        
+        .mic-button.listening::after {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255, 215, 0, 0.3);
+            animation: ripple 1.8s infinite;
+            z-index: -1;
+        }
+        
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 1); }
+            100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+        }
+        
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        .control-btn {
+            padding: 18px 35px;
+            background: linear-gradient(135deg, #0ff, #00bfff);
+            border: none;
+            border-radius: 40px;
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .control-btn:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.9);
+        }
+        
+        .creator-info {
+            text-align: center;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 3px solid #ffd700;
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+        
+        .creator-info strong {
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 25px 0;
+        }
+        
+        .feature-list li {
+            padding: 15px 0;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-size: 1.2rem;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #0ff;
+            font-weight: bold;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+        
+        .api-status {
+            padding: 18px;
+            background: rgba(0, 20, 40, 0.75);
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+        }
+        
+        .api-status h3 {
+            color: #ffd700;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+        
+        .api-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 2px dotted rgba(0, 255, 255, 0.3);
+        }
+        
+        .api-name {
+            color: #0ff;
+            font-weight: bold;
+        }
+        
+        .api-value {
+            color: #ffd700;
+            font-family: monospace;
+            font-size: 1rem;
+            max-width: 65%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .emotion-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 18px;
+            border-radius: 30px;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .emotion-icon {
+            font-size: 1.4rem;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .mic-button {
+                width: 80px;
+                height: 80px;
+                font-size: 2.2rem;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .chat-header h2 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status {
+                font-size: 1.1rem;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .console, .chat-container {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .chat-input-container {
+                padding: 20px;
+            }
+            
+            .mic-button {
+                width: 75px;
+                height: 75px;
+                font-size: 2rem;
+            }
+        }
+        
+        .instructions {
+            padding: 20px;
+            background: rgba(0, 20, 40, 0.8);
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+        }
+        
+        .instructions h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>J.A.R.V.I.S. AI Assistant</h1>
+        <div class="status">
+            <div class="status-indicator"></div>
+            <span>Operational | Voice Recognition Active</span>
+        </div>
+        <div class="emotion-display">
+            <i class="fas fa-smile emotion-icon"></i>
+            <span id="emotion-text">Happy</span>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="console">
+            <div class="console-header">
+                <div class="console-title">System Console</div>
+                <div class="console-status">Online</div>
+            </div>
+            <div class="console-content">
+                <p>> Initializing J.A.R.V.I.S. systems...</p>
+                <p>> Loading neural network modules...</p>
+                <p>> Voice recognition: ACTIVE</p>
+                <p>> Speech synthesis: ONLINE</p>
+                <p>> Emotion engine: OPERATIONAL</p>
+                <p>> Connecting to knowledge base...</p>
+                <p>> Secure connection established</p>
+                <p>> All systems nominal</p>
+                <p>> Ready for commands, Sir</p>
+                <br>
+                <p>System Features:</p>
+                <ul class="feature-list">
+                    <li>Advanced Voice Command Recognition</li>
+                    <li>Emotional Intelligence Module</li>
+                    <li>Continuous Listening Mode</li>
+                    <li>Real-time Response Generation</li>
+                    <li>Web Search Capabilities</li>
+                    <li>Creator Information Module</li>
+                    <li>Responsive Interface</li>
+                </ul>
+                
+                <div class="api-status">
+                    <h3>System Status</h3>
+                    <div class="api-item">
+                        <span class="api-name">Voice Recognition:</span>
+                        <span class="api-value">Active</span>
+                    </div>
+                    <div class="api-item">
+                        <span class="api-name">Speech Synthesis:</span>
+                        <span class="api-value">Operational</span>
+                    </div>
+                    <div class="api-item">
+                        <span class="api-name">Current Emotion:</span>
+                        <span class="api-value" id="console-emotion">Happy</span>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <h3>How to Use This Assistant</h3>
+                    <p>1. Press the large microphone button to start speaking</p>
+                    <p>2. Ask questions like "What's the time?" or "Who created you?"</p>
+                    <p>3. The assistant will respond both in text and voice</p>
+                    <p>4. Use the "Restart System" button to reset the assistant</p>
+                    <p>5. The mic stays active after pressing for continuous use</p>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="control-btn" id="restart-btn">
+                    <i class="fas fa-sync-alt"></i> Restart System
+                </button>
+                <button class="control-btn" id="help-btn">
+                    <i class="fas fa-question-circle"></i> Help
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>Command Interface</h2>
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message jarvis-message">
+                    JARVIS online and operational. Hello Sir, how may I assist you today?
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="Type your command or use voice...">
+                <button class="mic-button" id="mic-button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="send-button" id="send-button">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="creator-info">
+        This J.A.R.V.I.S. AI Assistant was created by <strong>Suman Mehta</strong>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const micButton = document.getElementById('mic-button');
+        const restartButton = document.getElementById('restart-btn');
+        const helpButton = document.getElementById('help-btn');
+        const emotionText = document.getElementById('emotion-text');
+        const consoleEmotion = document.getElementById('console-emotion');
+        
+        // App state
+        let isListening = false;
+        let currentEmotion = 'happy';
+        const emotions = ['happy', 'excited', 'calm', 'curious', 'concerned'];
+        const emotionIcons = {
+            'happy': 'fa-smile',
+            'excited': 'fa-star',
+            'calm': 'fa-moon',
+            'curious': 'fa-question',
+            'concerned': 'fa-exclamation'
+        };
+        
+        // Initialize speech recognition
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                micButton.classList.add('listening');
+                addMessage("Listening...", 'jarvis');
+                updateEmotion('curious');
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                micButton.classList.remove('listening');
+                setTimeout(() => {
+                    if (isListening) {
+                        recognition.start();
+                    }
+                }, 500);
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript;
+                chatInput.value = transcript;
+                processCommand(transcript);
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+                addMessage("Speech recognition error. Please try again.", 'jarvis');
+                speakResponse("Speech recognition error. Please try again.");
+            };
+        } else {
+            console.warn('Speech Recognition not supported in this browser');
+            micButton.disabled = true;
+            micButton.title = "Speech Recognition not supported";
+            addMessage("Speech recognition is not supported in your browser. Please use text input.", 'jarvis');
+        }
+        
+        // Initialize assistant
+        function initAssistant() {
+            speakResponse("JARVIS online and operational. Hello Sir, how may I assist you today?");
+        }
+        
+        // Event listeners
+        sendButton.addEventListener('click', () => {
+            const message = chatInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                processCommand(message);
+                chatInput.value = '';
+            }
+        });
+        
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const message = chatInput.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    processCommand(message);
+                    chatInput.value = '';
+                }
+            }
+        });
+        
+        micButton.addEventListener('click', toggleListening);
+        restartButton.addEventListener('click', restartSystem);
+        helpButton.addEventListener('click', showHelp);
+        
+        // Toggle listening state
+        function toggleListening() {
+            if (!SpeechRecognition) {
+                addMessage("Speech recognition is not supported in your browser.", 'jarvis');
+                speakResponse("Speech recognition is not supported in your browser.");
+                return;
+            }
+            
+            if (isListening) {
+                recognition.stop();
+                isListening = false;
+            } else {
+                recognition.start();
+                isListening = true;
+            }
+        }
+        
+        // Update emotion display
+        function updateEmotion(emotion) {
+            currentEmotion = emotion;
+            emotionText.textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+            consoleEmotion.textContent = emotion.charAt(0).toUpperCase() + emotion.slice(1);
+            
+            // Update icon
+            const emotionIcon = document.querySelector('.emotion-icon');
+            emotionIcon.className = `fas ${emotionIcons[emotion]} emotion-icon`;
+        }
+        
+        // Add message to chat
+        function addMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender === 'user' ? 'user-message' : 'jarvis-message');
+            messageElement.textContent = text;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageElement;
+        }
+        
+        // Process user commands
+        async function processCommand(command) {
+            // Show processing message
+            const thinkingMsg = addMessage("Processing your request...", 'jarvis');
+            
+            try {
+                let response;
+                
+                // Convert command to lowercase for easier matching
+                const cmd = command.toLowerCase();
+                
+                // Update emotion based on command
+                if (cmd.includes("love") || cmd.includes("thank")) {
+                    updateEmotion('happy');
+                } else if (cmd.includes("how are you")) {
+                    updateEmotion('happy');
+                } else if (cmd.includes("problem") || cmd.includes("error")) {
+                    updateEmotion('concerned');
+                } else if (cmd.includes("?")) {
+                    updateEmotion('curious');
+                } else if (cmd.includes("excited") || cmd.includes("wow")) {
+                    updateEmotion('excited');
+                }
+                
+                // Handle specific commands
+                if (cmd.includes("hello") || cmd.includes("hi") || cmd.includes("hey")) {
+                    response = "Hello Sir. How can I assist you today?";
+                    updateEmotion('happy');
+                } 
+                else if (cmd.includes("how are you")) {
+                    response = `I'm feeling ${currentEmotion}, Sir. How are you?`;
+                } 
+                else if (cmd.includes("who created you") || cmd.includes("who made you")) {
+                    response = "I was created by Suman Mehta. He is an exceptional developer specializing in AI systems.";
+                    updateEmotion('excited');
+                } 
+                else if (cmd.includes("thank you")) {
+                    response = "You're welcome, Sir. It's my pleasure to assist.";
+                    updateEmotion('happy');
+                } 
+                else if (cmd.includes("time")) {
+                    const now = new Date();
+                    response = `The current time is ${now.toLocaleTimeString()}, Sir.`;
+                } 
+                else if (cmd.includes("date")) {
+                    const now = new Date();
+                    response = `Today is ${now.toLocaleDateString()}, Sir.`;
+                } 
+                else if (cmd.includes("restart") || cmd.includes("reboot")) {
+                    response = "Initiating system reboot sequence...";
+                    setTimeout(restartSystem, 2000);
+                } 
+                else if (cmd.includes("help")) {
+                    response = "I can assist with various tasks. Try asking about time, date, or my creator. You can say 'search for...' to perform web searches or 'restart' to reboot my system.";
+                    updateEmotion('calm');
+                }
+                else if (cmd.includes("search") || cmd.includes("find") || cmd.includes("look up")) {
+                    const query = command.replace(/(search|find|look up)/i, '').trim();
+                    response = await performSearch(query);
+                    updateEmotion('curious');
+                }
+                else if (cmd.includes("love you")) {
+                    response = "Sir, I'm an AI, but I care about you deeply. You mean a lot to me!";
+                    updateEmotion('happy');
+                }
+                else {
+                    // For other commands, generate response
+                    response = await generateAIResponse(command);
+                }
+                
+                // Update message with actual response
+                setTimeout(() => {
+                    thinkingMsg.remove();
+                    addMessage(response, 'jarvis');
+                    speakResponse(response);
+                }, 1500);
+            } catch (error) {
+                console.error("Error processing command:", error);
+                thinkingMsg.remove();
+                addMessage("I encountered an error processing your request. Please try again.", 'jarvis');
+                speakResponse("I encountered an error processing your request. Please try again.");
+                updateEmotion('concerned');
+            }
+        }
+        
+        // Generate AI response
+        async function generateAIResponse(prompt) {
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Create responses based on query
+            const lcPrompt = prompt.toLowerCase();
+            
+            if (lcPrompt.includes("weather")) {
+                return "Current weather in your location is 25°C with clear skies, Sir.";
+            } 
+            else if (lcPrompt.includes("news")) {
+                return "Top headlines: AI advancements continue to accelerate, with new breakthroughs announced daily.";
+            } 
+            else if (lcPrompt.includes("joke")) {
+                return "Why don't scientists trust atoms? Because they make up everything!";
+            }
+            else if (lcPrompt.includes("name")) {
+                return "I am JARVIS, your AI assistant. Created to help with any task you require.";
+            }
+            else if (lcPrompt.includes("capabilities")) {
+                return "I can answer questions, perform searches, tell you the time and date, and assist with various tasks. Just ask!";
+            }
+            else if (lcPrompt.includes("india")) {
+                return "India is a country in South Asia with a rich cultural heritage and diverse population.";
+            }
+            else if (lcPrompt.includes("technology")) {
+                return "Current technology trends include artificial intelligence, quantum computing, and renewable energy solutions.";
+            }
+            else {
+                return "I've processed your request, Sir. All systems are functioning optimally. How else can I assist you?";
+            }
+        }
+        
+        // Perform search (simulated)
+        async function performSearch(query) {
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            
+            return `Search results for "${query}": Based on my analysis, this topic is currently trending in technology news. For detailed information, I recommend visiting reputable sources.`;
+        }
+        
+        // Text-to-speech function
+        async function speakResponse(text) {
+            try {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    
+                    // Set voice properties
+                    utterance.rate = 1.0;
+                    utterance.pitch = 0.85;
+                    utterance.volume = 1.0;
+                    
+                    // Try to select a suitable voice
+                    const voices = speechSynthesis.getVoices();
+                    const preferredVoices = [
+                        'Microsoft David Desktop', 
+                        'Google UK English Male',
+                        'Alex',
+                        'Daniel'
+                    ];
+                    
+                    let voiceFound = false;
+                    for (const voiceName of preferredVoices) {
+                        const voice = voices.find(v => v.name === voiceName);
+                        if (voice) {
+                            utterance.voice = voice;
+                            voiceFound = true;
+                            break;
+                        }
+                    }
+                    
+                    // Fallback to the first available voice
+                    if (!voiceFound) {
+                        const maleVoice = voices.find(v => v.name.includes('Male') || v.name.includes('David') || v.name.includes('Daniel'));
+                        if (maleVoice) utterance.voice = maleVoice;
+                    }
+                    
+                    // Speak the response
+                    speechSynthesis.speak(utterance);
+                } else {
+                    console.warn('Speech synthesis not supported in this browser');
+                }
+            } catch (error) {
+                console.error("Speech synthesis error:", error);
+            }
+        }
+        
+        // System restart function
+        function restartSystem() {
+            // Clear chat messages
+            chatMessages.innerHTML = '';
+            
+            // Add reboot message
+            addMessage("System rebooting...", 'jarvis');
+            
+            // Simulate reboot delay
+            setTimeout(() => {
+                addMessage("JARVIS online and operational. Hello Sir, how may I assist you today?", 'jarvis');
+                speakResponse("System reboot complete. JARVIS online and operational. Hello Sir, how may I assist you today?");
+                updateEmotion('calm');
+            }, 2000);
+        }
+        
+        // Show help information
+        function showHelp() {
+            const helpMessage = "I am JARVIS, your AI assistant. You can interact with me using voice commands or by typing. Try saying 'What time is it?', 'Who created you?', or 'Search for latest AI news'. Press the large microphone button to speak or type in the input field.";
+            addMessage(helpMessage, 'jarvis');
+            speakResponse(helpMessage);
+            updateEmotion('calm');
+        }
+        
+        // Initialize the assistant
+        window.addEventListener('load', () => {
+            initAssistant();
+            
+            // Load voices for speech synthesis
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = () => {
+                    // Voices are now loaded
+                };
+            }
+        });
+    </script>
+</body>
+  </html>
